@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/jimmyabou/tinyapp/issues"
   },
-  "homepage": "https://github.com/jimmyabou/tinyapp#readme"
+  "homepage": "https://github.com/jimmyabou/tinyapp#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
