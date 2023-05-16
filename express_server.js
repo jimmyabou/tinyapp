@@ -1,6 +1,8 @@
 
 const express = require("express");
+let cookieParser = require('cookie-parser')
 const app = express();
+app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs") // Set ejs as the view engine.
@@ -37,13 +39,22 @@ app.get("/set", (req, res) => {
   res.send(`a = ${a}`);
  });
  app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  let user=req.cookies["username"];
+  const templateVars = { urls: urlDatabase ,username: user};
   res.render("urls_index", templateVars);
+  console.log(templateVars);
+  console.log(user);
+  // res.render("urls_show", templateVars);
+  // res.render("urls_new", templateVars);
+  //res.render("./_header", templateVars);
+
 });
 
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let user=req.cookies["username"];
+  const templateVars = { urls: urlDatabase ,username: user};
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -55,12 +66,16 @@ app.post("/urls", (req, res) => {
   res.send(result); // Respond with 'Ok' (we will replace this)
 });
 app.get("/u/:id", (req, res) => {
+  let user=req.cookies["username"];
+  const templateVars = { urls: urlDatabase ,username: user};
+  res.render("urls_new", templateVars);
   const longURL = urlDatabase[req.params.id];
   res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  let user=req.cookies["username"];
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id],username: user };
   res.render("urls_show", templateVars);
 });
 app.post("/urls/:id/delete", (req,res)=>{
@@ -76,13 +91,11 @@ app.post("/urls/:id", (req,res)=>{
   res.redirect(`/urls/${EditId}`);
 })
 app.post("/login", (req,res)=>{
-  //let EditId=req.params.id;
   let username=req.body.username;
-  //console.log(urlDatabase);
   res.cookie("username",username);
- // console.log("username",username);
   res.redirect(`/urls`);
 })
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
