@@ -32,7 +32,8 @@
             <tr>
               <td><%= id %></td>
               <td><%= urls[id] %></td>
-              <td><form method="POST" action="/urls/<%=id%>/delete"><button>delete</button></form></td>
+              <td><form method="POST" action="/urls/<%=id%>/delete"><button>DELETE</button></form></td>
+              <td><form method="GET" action="/urls/<%=id%>"><button>EDIT</button></form></td>
             </tr>
           <% } %>
         </tbody>
