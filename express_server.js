@@ -60,8 +60,19 @@ app.get("/urls", (req, res) => {
   console.log(user);
 });
 
+function checkEmailAdressExists(users,input){
+  for(let entry in users){
+    if(input["email"]===users[entry].email){
+      return true;
+    } 
+  }
+  return false;}
 
-
+  function checkEmptyFields(input){
+    if(!input["email"]||!input["password"]){
+      return true;}
+      return false;
+  }
 
 //new branch 'feature/user-registration'below
 app.post("/register", (req, res) => {
@@ -69,6 +80,11 @@ app.post("/register", (req, res) => {
   // const templateVars = { urls: urlDatabase, username: user };
   // res.render("form", templateVars);
   let fromUser=req.body;
+  if(checkEmptyFields(fromUser)){
+    res.status(400).send("the fields can't be empty");
+  } else if(checkEmailAdressExists(users,fromUser)){
+    res.status(400).send("Email already exists");
+  } else {
   console.log(fromUser);
   let senUserEmail=fromUser["email"];
   let senUserPassword=fromUser["password"];
@@ -77,7 +93,8 @@ app.post("/register", (req, res) => {
   console.log(users);
   res.cookie("user_id", generateNewUserId);
   res.redirect('/urls');
-});
+  }
+  });
 app.get("/register", (req, res) => {
   // let user = req.cookies["username"];
   // const templateVars = { urls: urlDatabase, username: user };
