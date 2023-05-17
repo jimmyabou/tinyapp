@@ -10,7 +10,20 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-
+////////////////////////////////////////////////////////////////////
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+///////////////////////////////////////////////////////////////////
 function generateRandomString() {
   let shortId = '';
   let alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -47,14 +60,42 @@ app.get("/urls", (req, res) => {
 });
 
 
+
+
+//new branch 'feature/user-registration'below
+app.post("/register", (req, res) => {
+  // let user = req.cookies["username"];
+  // const templateVars = { urls: urlDatabase, username: user };
+  // res.render("form", templateVars);
+  let fromUser=req.body;
+  console.log(fromUser);
+  let senUserEmail=fromUser["email"];
+  let senUserPassword=fromUser["password"];
+  let generateNewUserId=generateRandomString();
+  users[generateNewUserId]={id:generateNewUserId,email:senUserEmail,password:senUserPassword};
+  console.log(users);
+  res.cookie("user_id", generateNewUserId);
+  res.redirect('/urls');
+});
+app.get("/register", (req, res) => {
+  // let user = req.cookies["username"];
+  // const templateVars = { urls: urlDatabase, username: user };
+  res.render("form");
+});
+//new branch 'feature/user-registration' above
+
+
+
+
+
+
 app.get("/urls/new", (req, res) => {
   let user = req.cookies["username"];
   const templateVars = { urls: urlDatabase, username: user };
   res.render("urls_new", templateVars);
 });
-
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
+  //console.log(req.body); // Log the POST request body to the console
   let shortId = generateRandomString();
   urlDatabase[shortId] = req.body["longURL"];
   let result = urlDatabase;
@@ -77,13 +118,13 @@ app.get("/urls/:id", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   let deleteId = req.params.id;
   delete urlDatabase[deleteId];
-  console.log(urlDatabase);
+  //console.log(urlDatabase);
   res.redirect('/urls');
 })
 app.post("/urls/:id", (req, res) => {
   let EditId = req.params.id;
   urlDatabase[EditId] = req.body.longURL;
-  console.log(urlDatabase);
+  //console.log(urlDatabase);
   res.redirect(`/urls/${EditId}`);
 })
 app.post("/login", (req, res) => {
