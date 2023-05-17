@@ -96,9 +96,10 @@ app.post("/register", (req, res) => {
   }
   });
 app.get("/register", (req, res) => {
-  // let user = req.cookies["username"];
-  // const templateVars = { urls: urlDatabase, username: user };
-  res.render("form");
+  let userID = req.cookies["user_id"];
+  let user=users[userID];
+  const templateVars = { urls: urlDatabase, username: user };
+  res.render("form",templateVars);
 });
 //new branch 'feature/user-registration' above
 
@@ -161,8 +162,8 @@ app.post("/login", (req, res) => {
   if (mailCheck.password===fromUser["password"]){
     res.cookie("user_id", mailCheck.id);
     res.redirect(`/urls`);
-  } else { res.send("password does not match")}
-} else {res.send("user is not registered")}
+  } else { res.status(403).send("password does not match")}
+} else {res.status(403).send("user is not registered")}
   
 })
 
