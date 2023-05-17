@@ -159,6 +159,11 @@ app.post("/logout", (req, res) => {
   res.redirect(`/urls`);
 })
 
+app.get("/login", (req, res) => {
+  // let user = req.cookies["username"];
+  // const templateVars = { urls: urlDatabase, username: user };
+  res.render("login");
+});
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });

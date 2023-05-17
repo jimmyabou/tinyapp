@@ -19,18 +19,9 @@
         </div>
       </form>
       <% } else{ %>
-
-
-        <form class="form-inline" action="/login" method="POST">
-          <div class="form-group mb-2">
-            <label for="username">
-              <%=username%>
-            </label>
-            <input class="form-control" type="text" name="username" placeholder="Username"
-              style="width: 300px; margin: 1em" />
-            <button type="Login" class="btn btn-primary">Login</button>
-          </div>
-        </form>
+        
+          <a href="../login" style="margin-right: 10px;">login</a>
+          <a href="../register" style="margin-right: 10px;">register</a>
         <% } %>
 
   </nav>
