@@ -63,7 +63,7 @@ app.get("/urls", (req, res) => {
 function checkEmailAdressExists(users,input){
   for(let entry in users){
     if(input["email"]===users[entry].email){
-      return true;
+      return users[entry];
     } 
   }
   return false;}
@@ -148,21 +148,37 @@ app.post("/urls/:id", (req, res) => {
   //console.log(urlDatabase);
   res.redirect(`/urls/${EditId}`);
 })
+
+
 app.post("/login", (req, res) => {
-  let acquireIdCookie = req.body.user_id;//temporarily commented out 
+  // let acquireIdCookie = req.body.user_id;//temporarily commented out 
   // res.cookie("user_id", username);//temporarily commented out 
-  let userEmailregistered=users[acquireIdCookie].email;
-  res.redirect(`/urls`);
+  // let userEmailregistered=users[acquireIdCookie].email;
+  let fromUser=req.body;
+  let mailCheck=checkEmailAdressExists(users,fromUser);
+  console.log(mailCheck);
+  if(mailCheck){
+  if (mailCheck.password===fromUser["password"]){
+    res.cookie("user_id", mailCheck.id);
+    res.redirect(`/urls`);
+  } else { res.send("password does not match")}
+} else {res.send("user is not registered")}
+  
 })
+
+
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect(`/urls`);
+  res.redirect(`/login`);
 })
 
 app.get("/login", (req, res) => {
   // let user = req.cookies["username"];
   // const templateVars = { urls: urlDatabase, username: user };
-  res.render("login");
+  let userID = req.cookies["user_id"];
+  let user=users[userID];
+  const templateVars = { urls: urlDatabase, username: user };
+  res.render("login",templateVars);
 });
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
