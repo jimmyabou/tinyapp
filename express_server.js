@@ -22,6 +22,11 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
+  user3: {
+    id: "user3",
+    email: "jamil@hotmail.com",
+    password: "123",
+  }
 };
 ///////////////////////////////////////////////////////////////////
 function generateRandomString() {
@@ -53,53 +58,60 @@ app.get("/fetch", (req, res) => {
 });
 app.get("/urls", (req, res) => {
   let userID = req.cookies["user_id"];
-  let user=users[userID];
+  let user = users[userID];
   const templateVars = { urls: urlDatabase, username: user };
   res.render("urls_index", templateVars);
   console.log(templateVars);
   console.log(user);
 });
 
-function checkEmailAdressExists(users,input){
-  for(let entry in users){
-    if(input["email"]===users[entry].email){
+function checkEmailAdressExists(users, input) {
+  for (let entry in users) {
+    if (input["email"] === users[entry].email) {
       return users[entry];
-    } 
+    }
   }
-  return false;}
+  return false;
+}
 
-  function checkEmptyFields(input){
-    if(!input["email"]||!input["password"]){
-      return true;}
-      return false;
+function checkEmptyFields(input) {
+  if (!input["email"] || !input["password"]) {
+    return true;
   }
+  return false;
+}
 
 //new branch 'feature/user-registration'below
 app.post("/register", (req, res) => {
   // let user = req.cookies["username"];
   // const templateVars = { urls: urlDatabase, username: user };
   // res.render("form", templateVars);
-  let fromUser=req.body;
-  if(checkEmptyFields(fromUser)){
+  let fromUser = req.body;
+  if (checkEmptyFields(fromUser)) {
     res.status(400).send("the fields can't be empty");
-  } else if(checkEmailAdressExists(users,fromUser)){
+  } else if (checkEmailAdressExists(users, fromUser)) {
     res.status(400).send("Email already exists");
   } else {
-  console.log(fromUser);
-  let senUserEmail=fromUser["email"];
-  let senUserPassword=fromUser["password"];
-  let generateNewUserId=generateRandomString();
-  users[generateNewUserId]={id:generateNewUserId,email:senUserEmail,password:senUserPassword};
-  console.log(users);
-  res.cookie("user_id", generateNewUserId);
-  res.redirect('/urls');
+    console.log(fromUser);
+    let senUserEmail = fromUser["email"];
+    let senUserPassword = fromUser["password"];
+    let generateNewUserId = generateRandomString();
+    users[generateNewUserId] = { id: generateNewUserId, email: senUserEmail, password: senUserPassword };
+    console.log(users);
+    //
+    res.cookie("user_id", generateNewUserId);
+    res.redirect('/urls');
   }
-  });
+});
 app.get("/register", (req, res) => {
+
   let userID = req.cookies["user_id"];
-  let user=users[userID];
+  let user = users[userID];
   const templateVars = { urls: urlDatabase, username: user };
-  res.render("form",templateVars);
+  if (userID){
+    res.redirect('/urls');
+  }
+  res.render("form", templateVars);
 });
 //new branch 'feature/user-registration' above
 
@@ -110,30 +122,40 @@ app.get("/register", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   let userID = req.cookies["user_id"];
-  let user=users[userID];
+  let user = users[userID];
   const templateVars = { urls: urlDatabase, username: user };
-  res.render("urls_new", templateVars);
+  if (userID){
+    res.render("urls_new", templateVars);
+  }
+  res.redirect('/login');
 });
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
+  let userID = req.cookies["user_id"];
+  if (userID){
   let shortId = generateRandomString();
   urlDatabase[shortId] = req.body["longURL"];
   let result = urlDatabase;
   res.redirect(`urls/${shortId}`);
   res.send(result); // Respond with 'Ok' (we will replace this)
+  }
+  res.send("you'd better not");
+
 });
 app.get("/u/:id", (req, res) => {
-  let userID = req.cookies["user_id"];
-  let user=users[userID];
-  const templateVars = { urls: urlDatabase, username: user };
-  res.render("urls_new", templateVars);
+  // let userID = req.cookies["user_id"];
+  // let user = users[userID];
+  // const templateVars = { urls: urlDatabase, username: user };
+  //res.render("urls_new", templateVars);
   const longURL = urlDatabase[req.params.id];
+  if(longURL===undefined){
+    res.send("the ID you types does not exist");}
   res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
   let userID = req.cookies["user_id"];
-  let user=users[userID];
+  let user = users[userID];
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], username: user };
   res.render("urls_show", templateVars);
 });
@@ -155,16 +177,16 @@ app.post("/login", (req, res) => {
   // let acquireIdCookie = req.body.user_id;//temporarily commented out 
   // res.cookie("user_id", username);//temporarily commented out 
   // let userEmailregistered=users[acquireIdCookie].email;
-  let fromUser=req.body;
-  let mailCheck=checkEmailAdressExists(users,fromUser);
+  let fromUser = req.body;
+  let mailCheck = checkEmailAdressExists(users, fromUser);
   console.log(mailCheck);
-  if(mailCheck){
-  if (mailCheck.password===fromUser["password"]){
-    res.cookie("user_id", mailCheck.id);
-    res.redirect(`/urls`);
-  } else { res.status(403).send("password does not match")}
-} else {res.status(403).send("user is not registered")}
-  
+  if (mailCheck) {
+    if (mailCheck.password === fromUser["password"]) {
+      res.cookie("user_id", mailCheck.id);
+      res.redirect(`/urls`);
+    } else { res.status(403).send("password does not match") }
+  } else { res.status(403).send("user is not registered") }
+
 })
 
 
@@ -177,9 +199,12 @@ app.get("/login", (req, res) => {
   // let user = req.cookies["username"];
   // const templateVars = { urls: urlDatabase, username: user };
   let userID = req.cookies["user_id"];
-  let user=users[userID];
-  const templateVars = { urls: urlDatabase, username: user };
-  res.render("login",templateVars);
+  let user = users[userID];
+  const templateVars = { urls: urlDatabase, username: user};
+  if (userID){
+    res.redirect('/urls');
+  }
+  res.render("login", templateVars);
 });
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
