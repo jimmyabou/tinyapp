@@ -25,42 +25,6 @@ app.get("/urls", (req, res) => {
   }
     res.render("urls_index", templateVars);
 });
-
-app.post("/register", (req, res) => {
-  let email=req.body["email"];
-  let pass=req.body["password"];
-  let id = generateRandomString();
-  if (!pass||!email) {
-    return res.status(400).send("the fields can't be empty");
-  }
-  if (getUserByEmail (email,users)) {
-    return res.status(400).send("Email already exists");
-  }
-    let password = bcrypt.hashSync(pass, 10);
-    users[id] = { id, email, password };
-    req.session.user_id = id;
-    res.redirect('/urls');
-  }
-);
-app.get("/register", (req, res) => {
-  let userID = req.session.user_id;
-  let username = users[userID];
-  const templateVars = { urls: urlDatabase, username };
-  if (!userID) {
-    return res.render("form", templateVars);
-  }
-    res.redirect('/urls');
-});
-
-app.get("/urls/new", (req, res) => {
-  let userID = req.session.user_id;
-  let user = users[userID];
-  const templateVars = { urls: urlDatabase, username: user };
-  if (!userID) {
-    return res.redirect('/login');
-  }
-    res.render("urls_new", templateVars);
-});
 app.post("/urls", (req, res) => {
   let userID = req.session.user_id;
   let shortId = generateRandomString();
@@ -71,41 +35,12 @@ app.post("/urls", (req, res) => {
     return res.send("you'd better not");
   }
     // let result = urlDatabase;
-    res.redirect(`urls/${shortId}`);
+    res.redirect(`urls`);
+    // res.redirect(`urls/${shortId}`);
     // res.send(urlDatabase); 
 });
-app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id].longURL;
-  if (!urlDatabase[req.params.id]) {
-    return res.send("the ID you typed does not exist");
-  }
-  res.redirect(longURL);
-});
 
-app.get("/urls/:id", (req, res) => {
-  let userID = req.session.user_id;
-  let id = req.params.id;
-  let username = users[userID];
-  let longURL=urlDatabase[req.params.id].longURL;
-  const templateVars = { id, longURL, username };
-  res.render("urls_show", templateVars);
-});
-app.post("/urls/:id/delete", (req, res) => {
-  let userID = req.session.user_id;
-  let deleteId = req.params.id;
-  if (!userID) {
-    return res.send("login first");
-  }
-  
-  if (!urlDatabase[deleteId]) {
-    return res.send("ID does not exist");
-  }
-  if (userID === urlDatabase[deleteId].userID) {
-    delete urlDatabase[deleteId];
-    return res.redirect('/urls');
-  }
-  res.send("you dont have permission to delete IDs that you did not create");}
-)
+
 app.post("/urls/:id", (req, res) => {
   let userID = req.session.user_id;
   let EditId = req.params.id;
@@ -123,6 +58,59 @@ app.post("/urls/:id", (req, res) => {
   res.send("you dont have permission to edit IDs that you did not create");
 })
 
+app.get("/urls/new", (req, res) => {
+  let userID = req.session.user_id;
+  let user = users[userID];
+  const templateVars = { urls: urlDatabase, username: user };
+  if (!userID) {
+    return res.redirect('/login');
+  }
+    res.render("urls_new", templateVars);
+});
+app.get("/urls/:id", (req, res) => {
+  let userID = req.session.user_id;
+  let id = req.params.id;
+  let username = users[userID];
+  let longURL=urlDatabase[req.params.id].longURL;
+  const templateVars = { id, longURL, username };
+  res.render("urls_show", templateVars);
+});
+app.get("/u/:id", (req, res) => {
+  const longURL = urlDatabase[req.params.id].longURL;
+  if (!urlDatabase[req.params.id]) {
+    return res.send("the ID you typed does not exist");
+  }
+  res.redirect(longURL);
+});
+
+
+app.post("/urls/:id/delete", (req, res) => {
+  let userID = req.session.user_id;
+  let deleteId = req.params.id;
+  if (!userID) {
+    return res.send("login first");
+  }
+  
+  if (!urlDatabase[deleteId]) {
+    return res.send("ID does not exist");
+  }
+  if (userID === urlDatabase[deleteId].userID) {
+    delete urlDatabase[deleteId];
+    return res.redirect('/urls');
+  }
+  res.send("you dont have permission to delete IDs that you did not create");}
+)
+
+
+app.get("/login", (req, res) => {
+  let userID = req.session.user_id;
+  let username = users[userID];
+  const templateVars = { urls: urlDatabase, username };
+  if (!userID) {
+    return res.render("login", templateVars);
+  }
+  res.redirect('/urls');
+});
 app.post("/login", (req, res) => {
 
   let email=req.body["email"];
@@ -136,20 +124,38 @@ app.post("/login", (req, res) => {
   } else { res.status(403).send("user is not registered") }
 })
 
-app.post("/logout", (req, res) => {
-  req.session=null;
-  res.redirect(`/login`);
-})
 
-app.get("/login", (req, res) => {
+app.get("/register", (req, res) => {
   let userID = req.session.user_id;
   let username = users[userID];
   const templateVars = { urls: urlDatabase, username };
   if (!userID) {
-    return res.render("login", templateVars);
+    return res.render("form", templateVars);
   }
-  res.redirect('/urls');
+    res.redirect('/urls');
 });
+
+app.post("/register", (req, res) => {
+  let email=req.body["email"];
+  let pass=req.body["password"];
+  let id = generateRandomString();
+  let password = bcrypt.hashSync(pass, 10);
+
+  if (!pass||!email) {
+    return res.status(400).send("the fields can't be empty");
+  }
+  if (getUserByEmail (email,users)) {
+    return res.status(400).send("Email already exists");
+  }
+    users[id] = { id, email, password };
+    req.session.user_id = id;
+    res.redirect('/urls');
+  }
+);
+app.post("/logout", (req, res) => {
+  req.session=null;
+  res.redirect(`/login`);
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
