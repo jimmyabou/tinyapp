@@ -1,9 +1,18 @@
 
 const express = require("express");
 const bcrypt = require("bcryptjs");
-let cookieParser = require('cookie-parser')
+let cookieParser = require('cookie-parser');
+let cookieSession = require('cookie-session');
 const app = express();
-app.use(cookieParser())
+app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ["key1"],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}));
+
 app.use(express.urlencoded({ extended: true }));
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs") // Set ejs as the view engine.
@@ -97,7 +106,7 @@ function checkEmptyFields(input) {
 }
 
 app.get("/urls", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   if (userID) {
     let user = users[userID];
     let userSpecificUrls = urlsForUser(userID);
@@ -127,13 +136,14 @@ app.post("/register", (req, res) => {
     users[generateNewUserId] = { id: generateNewUserId, email: senUserEmail, password: senUserPassword };
     console.log(users);
     //
-    res.cookie("user_id", generateNewUserId);
+    // res.cookie("user_id", generateNewUserId);//this is replace with the below to encrypt the cookie
+    req.session.user_id = generateNewUserId;
     res.redirect('/urls');
   }
 });
 app.get("/register", (req, res) => {
 
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let user = users[userID];
   const templateVars = { urls: urlDatabase, username: user };
   if (userID) {
@@ -149,7 +159,7 @@ app.get("/register", (req, res) => {
 
 
 app.get("/urls/new", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let user = users[userID];
   const templateVars = { urls: urlDatabase, username: user };
   if (userID) {
@@ -159,7 +169,7 @@ app.get("/urls/new", (req, res) => {
 });
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   if (userID) {
     let shortId = generateRandomString();
     urlDatabase[shortId] = {};
@@ -173,7 +183,7 @@ app.post("/urls", (req, res) => {
 
 });
 app.get("/u/:id", (req, res) => {
-  // let userID = req.cookies["user_id"];
+  // let userID = req.session.user_id;
   // let user = users[userID];
   // const templateVars = { urls: urlDatabase, username: user };
   //res.render("urls_new", templateVars);
@@ -186,13 +196,13 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let user = users[userID];
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, username: user };
   res.render("urls_show", templateVars);
 });
 app.post("/urls/:id/delete", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   if (!userID) {
     res.send("login first");
   }
@@ -208,7 +218,7 @@ app.post("/urls/:id/delete", (req, res) => {
   else {res.send("you dont have permission to delete IDs that you did not create");}
 })
 app.post("/urls/:id", (req, res) => {
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   if (!userID) {
     res.send("login first");
   }
@@ -236,7 +246,8 @@ app.post("/login", (req, res) => {
   if (mailCheck) {
     // bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword);
     if (bcrypt.compareSync(fromUser["password"],mailCheck.password)) {
-      res.cookie("user_id", mailCheck.id);
+      // res.cookie("user_id", mailCheck.id);////************************************** */
+      req.session.user_id=mailCheck.id;
       res.redirect(`/urls`);
     } else { res.status(403).send("password does not match") }
   } else { res.status(403).send("user is not registered") }
@@ -245,14 +256,16 @@ app.post("/login", (req, res) => {
 
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  res.clearCookie("session");
+  res.clearCookie("session.sig");
+  // delete req.session;
   res.redirect(`/login`);
 })
 
 app.get("/login", (req, res) => {
   // let user = req.cookies["username"];
   // const templateVars = { urls: urlDatabase, username: user };
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let user = users[userID];
   const templateVars = { urls: urlDatabase, username: user };
   if (userID) {
