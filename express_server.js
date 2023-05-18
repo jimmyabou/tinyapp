@@ -27,17 +27,17 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: bcrypt.hashSync("dishwasher-funk", 10)
   },
   user3: {
     id: "user3",
     email: "jamil@hotmail.com",
-    password: "123",
+    password:bcrypt.hashSync("123", 10)
   }
 };
 ///////////////////////////////////////////////////////////////////
@@ -234,7 +234,8 @@ app.post("/login", (req, res) => {
   let mailCheck = checkEmailAdressExists(users, fromUser);
   // console.log(mailCheck);
   if (mailCheck) {
-    if (mailCheck.password === fromUser["password"]) {
+    // bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword);
+    if (bcrypt.compareSync(fromUser["password"],mailCheck.password)) {
       res.cookie("user_id", mailCheck.id);
       res.redirect(`/urls`);
     } else { res.status(403).send("password does not match") }
