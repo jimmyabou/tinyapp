@@ -119,7 +119,7 @@ app.post("/register", (req, res) => {
   } else if (checkEmailAdressExists(users, fromUser)) {
     res.status(400).send("Email already exists");
   } else {
-    console.log(fromUser);
+    // console.log(fromUser);
     let senUserEmail = fromUser["email"];
     let senUserPassword = fromUser["password"];
     let generateNewUserId = generateRandomString();
@@ -176,9 +176,10 @@ app.get("/u/:id", (req, res) => {
   // let user = users[userID];
   // const templateVars = { urls: urlDatabase, username: user };
   //res.render("urls_new", templateVars);
-  const longURL = urlDatabase[req.params.id];
-  if(longURL===undefined){
+  
+  if(urlDatabase[req.params.id]===undefined){
     res.send("the ID you typed does not exist");}
+    const longURL = urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
 });
 
@@ -205,11 +206,21 @@ app.post("/urls/:id/delete", (req, res) => {
 res.send("you dont have permission to delete IDs that you did not create");
 })
 app.post("/urls/:id", (req, res) => {
+  let userID = req.cookies["user_id"];
+  if(!userID){
+    res.send("login first");
+  }
   let EditId = req.params.id;
-  
+  if (urlDatabase[EditId]===undefined){
+    res.send("ID does not exist");
+  }
+  if(userID===urlDatabase[EditId].userID){
   urlDatabase[EditId].longURL = req.body.longURL;
   //console.log(urlDatabase);
-  res.redirect(`/urls/${EditId}`);
+  // res.redirect(`/urls/${EditId}`);
+  res.redirect(`/urls`);
+  }
+  res.send("you dont have permission to edit IDs that you did not create");
 })
 
 
@@ -219,7 +230,7 @@ app.post("/login", (req, res) => {
   // let userEmailregistered=users[acquireIdCookie].email;
   let fromUser = req.body;
   let mailCheck = checkEmailAdressExists(users, fromUser);
-  console.log(mailCheck);
+  // console.log(mailCheck);
   if (mailCheck) {
     if (mailCheck.password === fromUser["password"]) {
       res.cookie("user_id", mailCheck.id);
