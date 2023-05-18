@@ -6,10 +6,21 @@ app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs") // Set ejs as the view engine.
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
+
 ////////////////////////////////////////////////////////////////////
 const users = {
   userRandomID: {
@@ -60,9 +71,12 @@ app.get("/urls", (req, res) => {
   let userID = req.cookies["user_id"];
   let user = users[userID];
   const templateVars = { urls: urlDatabase, username: user };
-  res.render("urls_index", templateVars);
-  console.log(templateVars);
-  console.log(user);
+  if(userID){
+    res.render("urls_index", templateVars);
+  }
+  res.send("please login first");
+  // console.log(templateVars);
+  // console.log(user);
 });
 
 function checkEmailAdressExists(users, input) {
@@ -134,7 +148,8 @@ app.post("/urls", (req, res) => {
   let userID = req.cookies["user_id"];
   if (userID){
   let shortId = generateRandomString();
-  urlDatabase[shortId] = req.body["longURL"];
+  urlDatabase[shortId]={};
+  urlDatabase[shortId].longURL = req.body["longURL"];
   let result = urlDatabase;
   res.redirect(`urls/${shortId}`);
   res.send(result); // Respond with 'Ok' (we will replace this)
@@ -149,14 +164,14 @@ app.get("/u/:id", (req, res) => {
   //res.render("urls_new", templateVars);
   const longURL = urlDatabase[req.params.id];
   if(longURL===undefined){
-    res.send("the ID you types does not exist");}
+    res.send("the ID you typed does not exist");}
   res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
   let userID = req.cookies["user_id"];
   let user = users[userID];
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], username: user };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, username: user };
   res.render("urls_show", templateVars);
 });
 app.post("/urls/:id/delete", (req, res) => {
@@ -167,7 +182,8 @@ app.post("/urls/:id/delete", (req, res) => {
 })
 app.post("/urls/:id", (req, res) => {
   let EditId = req.params.id;
-  urlDatabase[EditId] = req.body.longURL;
+  
+  urlDatabase[EditId].longURL = req.body.longURL;
   //console.log(urlDatabase);
   res.redirect(`/urls/${EditId}`);
 })
