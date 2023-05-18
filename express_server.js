@@ -75,97 +75,82 @@ app.post("/urls", (req, res) => {
     // res.send(urlDatabase); 
 });
 app.get("/u/:id", (req, res) => {
-  // let userID = req.session.user_id;
-  // let user = users[userID];
-  // const templateVars = { urls: urlDatabase, username: user };
-  //res.render("urls_new", templateVars);
-
-  if (urlDatabase[req.params.id] === undefined) {
-    res.send("the ID you typed does not exist");
+  const longURL = urlDatabase[req.params.id].longURL;
+  if (!urlDatabase[req.params.id]) {
+    return res.send("the ID you typed does not exist");
   }
-  else {const longURL = urlDatabase[req.params.id].longURL;
-  res.redirect(longURL);}
+  res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
   let userID = req.session.user_id;
-  let user = users[userID];
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id].longURL, username: user };
+  let id = req.params.id;
+  let username = users[userID];
+  let longURL=urlDatabase[req.params.id].longURL;
+  const templateVars = { id, longURL, username };
   res.render("urls_show", templateVars);
 });
 app.post("/urls/:id/delete", (req, res) => {
   let userID = req.session.user_id;
-  if (!userID) {
-    res.send("login first");
-  }
   let deleteId = req.params.id;
-  if (urlDatabase[deleteId] === undefined) {
-    res.send("ID does not exist");
+  if (!userID) {
+    return res.send("login first");
+  }
+  
+  if (!urlDatabase[deleteId]) {
+    return res.send("ID does not exist");
   }
   if (userID === urlDatabase[deleteId].userID) {
     delete urlDatabase[deleteId];
-    //console.log(urlDatabase);
-    res.redirect('/urls');
+    return res.redirect('/urls');
   }
-  else {res.send("you dont have permission to delete IDs that you did not create");}
-})
+  res.send("you dont have permission to delete IDs that you did not create");}
+)
 app.post("/urls/:id", (req, res) => {
   let userID = req.session.user_id;
-  if (!userID) {
-    res.send("login first");
-  }
   let EditId = req.params.id;
-  if (urlDatabase[EditId] === undefined) {
-    res.send("ID does not exist");
+  let longURL=req.body.longURL
+  if (!userID) {
+    return res.send("login first");
+  }
+  if (!urlDatabase[EditId]) {
+    return res.send("ID does not exist");
   }
   if (userID === urlDatabase[EditId].userID) {
-    urlDatabase[EditId].longURL = req.body.longURL;
-    //console.log(urlDatabase);
-    // res.redirect(`/urls/${EditId}`);
-    res.redirect(`/urls`);
+    urlDatabase[EditId].longURL = longURL;
+    return res.redirect(`/urls`);
   }
-  else {res.send("you dont have permission to edit IDs that you did not create");}
+  res.send("you dont have permission to edit IDs that you did not create");
 })
 
-
 app.post("/login", (req, res) => {
-  // let acquireIdCookie = req.body.user_id;//temporarily commented out 
-  // res.cookie("user_id", username);//temporarily commented out 
-  // let userEmailregistered=users[acquireIdCookie].email;
-  let fromUser = req.body;
+
   let email=req.body["email"];
-  let mailCheck = getUserByEmail (email,users);
-  // console.log(mailCheck);
-  if (mailCheck) {
-    // bcrypt.compareSync("purple-monkey-dinosaur", hashedPassword);
-    if (bcrypt.compareSync(fromUser["password"],mailCheck.password)) {
-      // res.cookie("user_id", mailCheck.id);////************************************** */
-      req.session.user_id=mailCheck.id;
+  let password=req.body["password"];
+  let databaseUser = getUserByEmail (email,users);
+  if (databaseUser) {
+    if (bcrypt.compareSync(password,databaseUser.password)) {
+      req.session.user_id=databaseUser.id;
       res.redirect(`/urls`);
     } else { res.status(403).send("password does not match") }
   } else { res.status(403).send("user is not registered") }
-
 })
 
-
 app.post("/logout", (req, res) => {
-  // res.clearCookie("session");
-  // res.clearCookie("session.sig");
   req.session=null;
   res.redirect(`/login`);
 })
 
 app.get("/login", (req, res) => {
-  // let user = req.cookies["username"];
-  // const templateVars = { urls: urlDatabase, username: user };
   let userID = req.session.user_id;
-  let user = users[userID];
-  const templateVars = { urls: urlDatabase, username: user };
-  if (userID) {
-    res.redirect('/urls');
+  let username = users[userID];
+  const templateVars = { urls: urlDatabase, username };
+  if (!userID) {
+    return res.render("login", templateVars);
   }
-  else {res.render("login", templateVars);}
+  res.redirect('/urls');
 });
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
