@@ -17,7 +17,7 @@ const urlDatabase = {
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "aJ48lW",
+    userID: "user3",
   },
 };
 
@@ -40,6 +40,16 @@ const users = {
   }
 };
 ///////////////////////////////////////////////////////////////////
+function urlsForUser(id){
+  let userCreatedUrls={};
+  for (let ID in urlDatabase){
+    if (urlDatabase[ID]["userID"]===id){
+      userCreatedUrls[ID]=urlDatabase[ID];
+    }
+  }return userCreatedUrls;
+}
+
+
 function generateRandomString() {
   let shortId = '';
   let alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -67,17 +77,7 @@ app.get("/set", (req, res) => {
 app.get("/fetch", (req, res) => {
   res.send(`a = ${a}`);
 });
-app.get("/urls", (req, res) => {
-  let userID = req.cookies["user_id"];
-  let user = users[userID];
-  const templateVars = { urls: urlDatabase, username: user };
-  if(userID){
-    res.render("urls_index", templateVars);
-  }
-  res.send("please login first");
-  // console.log(templateVars);
-  // console.log(user);
-});
+
 
 function checkEmailAdressExists(users, input) {
   for (let entry in users) {
@@ -94,6 +94,19 @@ function checkEmptyFields(input) {
   }
   return false;
 }
+
+app.get("/urls", (req, res) => {
+  let userID = req.cookies["user_id"];
+  let user = users[userID];
+  let userSpecificUrls=urlsForUser(userID);
+  const templateVars = { urls: userSpecificUrls, username: user };
+  if(userID){
+    res.render("urls_index", templateVars);
+  }
+  res.send("please login first");
+  // console.log(templateVars);
+  // console.log(user);
+});
 
 //new branch 'feature/user-registration'below
 app.post("/register", (req, res) => {
@@ -150,6 +163,7 @@ app.post("/urls", (req, res) => {
   let shortId = generateRandomString();
   urlDatabase[shortId]={};
   urlDatabase[shortId].longURL = req.body["longURL"];
+  urlDatabase[shortId].userID=userID;
   let result = urlDatabase;
   res.redirect(`urls/${shortId}`);
   res.send(result); // Respond with 'Ok' (we will replace this)
@@ -175,10 +189,20 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 app.post("/urls/:id/delete", (req, res) => {
+  let userID = req.cookies["user_id"];
+  if(!userID){
+    res.send("login first");
+  }
   let deleteId = req.params.id;
+  if (urlDatabase[deleteId]===undefined){
+    res.send("ID does not exist");
+  }
+  if(userID===urlDatabase[deleteId].userID){
   delete urlDatabase[deleteId];
   //console.log(urlDatabase);
   res.redirect('/urls');
+}
+res.send("you dont have permission to delete IDs that you did not create");
 })
 app.post("/urls/:id", (req, res) => {
   let EditId = req.params.id;
