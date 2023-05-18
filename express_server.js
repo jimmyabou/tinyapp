@@ -1,5 +1,6 @@
 
 const express = require("express");
+const bcrypt = require("bcryptjs");
 let cookieParser = require('cookie-parser')
 const app = express();
 app.use(cookieParser())
@@ -121,10 +122,10 @@ app.post("/register", (req, res) => {
   } else {
     // console.log(fromUser);
     let senUserEmail = fromUser["email"];
-    let senUserPassword = fromUser["password"];
+    let senUserPassword = bcrypt.hashSync(fromUser["password"], 10);///******************************* */
     let generateNewUserId = generateRandomString();
     users[generateNewUserId] = { id: generateNewUserId, email: senUserEmail, password: senUserPassword };
-    // console.log(users);
+    console.log(users);
     //
     res.cookie("user_id", generateNewUserId);
     res.redirect('/urls');
