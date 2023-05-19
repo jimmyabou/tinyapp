@@ -75,10 +75,10 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id].longURL;
   if (!urlDatabase[req.params.id]) {
-    return res.send("the ID you typed does not exist");
+    return res.json("The ID you typed does not exist");
   }
+  const longURL = urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
 });
 
