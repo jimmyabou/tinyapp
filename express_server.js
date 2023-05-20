@@ -67,8 +67,17 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   let userID = req.session.user_id;
-  let id = req.params.id;
   let username = users[userID];
+  let id = req.params.id;
+  if(!userID){
+    return res.send("non logged in user: Please login first to view shortURL!");
+  }
+  if(!urlDatabase[id]){
+    return res.send("URL for the given ID does not exist!");
+  }
+  if (!urlsForUser(userID)[id]){
+    return res.send("User does not own the URL with the given ID!");
+  }
   let longURL = urlDatabase[req.params.id].longURL;
   const templateVars = { id, longURL, username };
   res.render("urls_show", templateVars);
