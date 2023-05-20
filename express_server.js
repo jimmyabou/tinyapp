@@ -13,7 +13,11 @@ const PORT = 8080;
 app.set("view engine", "ejs")
 
 app.get("/", (req, res) => {
+  let userID = req.session.user_id;
+  if(!userID){
   res.redirect('/login');
+  }
+  res.redirect('/urls');
 });
 app.get("/urls", (req, res) => {
   let userID = req.session.user_id;
@@ -35,7 +39,7 @@ app.post("/urls", (req, res) => {
   if (!userID) {
     return res.send("you'd better not");
   }
-  res.redirect(`urls`);
+  res.redirect(`/urls/${shortId}`);
 });
 
 app.post("/urls/:id", (req, res) => {
@@ -86,6 +90,9 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:id", (req, res) => {
   if (!urlDatabase[req.params.id]) {
     return res.json("The ID you typed does not exist");
+  }
+  if (!urlDatabase[req.params.id].longURL){
+    return res.json("The longURL is not assigned yet");
   }
   const longURL = urlDatabase[req.params.id].longURL;
   res.redirect(longURL);
