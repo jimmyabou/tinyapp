@@ -1,4 +1,5 @@
-let { getUserByEmail, users, urlDatabase, urlsForUser, generateRandomString } = require('./helper');
+let { getUserByEmail, urlsForUser, generateRandomString } = require('./helper');
+let { users, urlDatabase } = require('./data');
 const express = require("express");
 const bcrypt = require("bcryptjs");
 let cookieSession = require('cookie-session');
@@ -22,11 +23,12 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   let userID = req.session.user_id;
   let username = users[userID];
-  let urls = urlsForUser(userID);
-  const templateVars = { urls, username };
+  
   if (!userID) {
     return res.send("please login first");
   }
+  let urls = urlsForUser(userID);
+  const templateVars = { urls, username };
   res.render("urls_index", templateVars);
 });
 
