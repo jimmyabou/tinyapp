@@ -1,5 +1,4 @@
 const bcrypt = require("bcryptjs");
-let { getUserByEmail, urlsForUser, generateRandomString } = require('./helper');
 const urlDatabase = {
   xLm7sQ: {
     longURL: "https://www.hotmail.com",
